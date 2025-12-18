@@ -4,7 +4,12 @@ import matplotlib.pyplot as plt
 
 
 
-def despiked(values: list, arguments: list=[], window: int=5, multipass: int=1) -> (list, list):
+def despiked(
+        values: list,
+        arguments: list=[],
+        window: int=5,
+        multipass: int=1,
+        method: str="mean") -> (list, list):
     """
     Dataseries despiker
     
@@ -18,12 +23,15 @@ def despiked(values: list, arguments: list=[], window: int=5, multipass: int=1) 
                     (smaller window = more precise despiking) 
 
         multipass : int - number of despiking passes
+        
+        method :    str - <"median", "mean"> method of calculating threshold value of a spike
 
     Return:
         tuple (arguments: list, values: list)
     """
 
     assert window >= 3 and window % 2, "window size should be an odd number >= than 3"
+    assert method in ["median", "mean"], "the method should be either 'median' or 'avg'"
     ndata = [[t, v] for t, v in zip(arguments if arguments else range(len(values)), values)]
     for mpass in range(multipass):
         spikes = []
@@ -45,10 +53,15 @@ def despiked(values: list, arguments: list=[], window: int=5, multipass: int=1) 
             spikes.append((i, spike, data_window))
 
         if spikes:
-            # calculate average spike hight
-            avg_spike = sum([v for _, v, _ in spikes]) / len(spikes)
+            # calculate spike_condition
+            match method:
+                case "median":
+                    _, spike_condition, _ = sorted(spikes, key=lambda e: e[1])[(len(spikes) // 2) + 1]
+                case "mean":
+                    spike_condition = sum([v for _, v, _ in spikes]) / len(spikes)
+
             for spike_index, spike_height, spike_data in spikes:
-                if spike_height > avg_spike:
+                if spike_height > spike_condition:
                     # if spike_height is greater than avg_spike
                     # recalculate values of spike_data as an average of 2 neighbouring data_points
                     # and replace them in the input data
@@ -61,28 +74,36 @@ def despiked(values: list, arguments: list=[], window: int=5, multipass: int=1) 
 
 if __name__ == "__main__":
     with open("./test_data.json") as df:
-        data = yaml.safe_load(df)[:1440]
+        data = yaml.safe_load(df)[:]
 
     arguments, values = [t for t, _ in data], [v for _, v in data]
 
-    fig, (plot_mp, plot_w) = plt.subplots(2, 1, sharex=True, sharey=True)
+    fig, (plot_multipass, plot_window, plot_method) = plt.subplots(3, 1, sharex=True, sharey=True)
     fig.tight_layout()
 
-    plot_mp.plot(arguments, values, label="Original data")
+    plot_multipass.plot(arguments, values, label="Original data")
+    w = 5
     for p in [1, 3, 5, 7]:
-        nx, ny = despiked(values, arguments, window=5, multipass=p)
-        plot_mp.plot(nx, ny, label=f"Despiked data: multipass = {p}")
+        nx, ny = despiked(values, arguments, window=w, multipass=p)
+        plot_multipass.plot(nx, ny, label=f"Despiked data: window = {w}, multipass = {p}")
+    plot_multipass.grid()
+    plot_multipass.legend()
 
-    plot_mp.grid()
-    plot_mp.legend()
-
-
-    plot_w.plot(arguments, values, label="Original data")
+    plot_window.plot(arguments, values, label="Original data")
+    p = 1
     for w in [3, 9, 15, 21]:
-        nx, ny = despiked(values, arguments, window=w, multipass=1)
-        plot_w.plot(nx, ny, label=f"Despiked data: window = {w}")
-
-    plot_w.grid()
-    plot_w.legend()
+        nx, ny = despiked(values, arguments, window=w, multipass=p)
+        plot_window.plot(nx, ny, label=f"Despiked data: window = {w}, multipass = {p}")
+    plot_window.grid()
+    plot_window.legend()
+    
+    plot_method.plot(arguments, values, label="Original data")
+    w, p = 9, 3
+    nx, ny = despiked(values, arguments, window=9, multipass=3, method="mean")
+    plot_method.plot(nx, ny, label=f"Mean: window = {w}, multipass = {p}")
+    nx, ny = despiked(values, arguments, window=9, multipass=3, method="median")
+    plot_method.plot(nx, ny, label=f"Median: window = {w}, multipass = {p}")
+    plot_method.grid()
+    plot_method.legend()
 
     plt.show()
