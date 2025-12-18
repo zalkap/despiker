@@ -69,7 +69,7 @@ if __name__ == "__main__":
     fig.tight_layout()
 
     plot_mp.plot(arguments, values, label="Original data")
-    for p in range(1, 10):
+    for p in [1, 3, 5, 7]:
         nx, ny = despiked(values, arguments, window=5, multipass=p)
         plot_mp.plot(nx, ny, label=f"Despiked data: multipass = {p}")
 
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
 
     plot_w.plot(arguments, values, label="Original data")
-    for w in range(3, 33, 4):
+    for w in [3, 9, 15, 21]:
         nx, ny = despiked(values, arguments, window=w, multipass=1)
         plot_w.plot(nx, ny, label=f"Despiked data: window = {w}")
 
