@@ -4,7 +4,6 @@ import yaml
 from despiker import despiked
 
 
-
 if __name__ == "__main__":
     with open("./test_data.json") as df:
         data = yaml.safe_load(df)[:]
@@ -29,7 +28,7 @@ if __name__ == "__main__":
         plot_window.plot(nx, ny, label=f"Despiked data: window = {w}, multipass = {p}")
     plot_window.grid()
     plot_window.legend()
-    
+
     plot_method.plot(arguments, values, label="Original data")
     w, p = 9, 3
     nx, ny = despiked(values, arguments, window=9, multipass=3, method="mean")

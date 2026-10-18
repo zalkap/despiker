@@ -2,27 +2,27 @@ __author__ = "Marcin Zalewski"
 __version__ = 1.0
 
 
-
 def despiked(
         values: list,
-        arguments: list=[],
-        window: int=5,
-        multipass: int=1,
-        method: str="mean") -> (list, list):
+        arguments: list = [],
+        window: int = 5,
+        multipass: int = 1,
+        method: str = "mean") -> (list, list):
+
     """
     Dataseries despiker
-    
+
     Arguments:
 
         values    : list[int, float] of values (Y's)
         arguments : list[int, float] of arguments (X'es) - automatically generated when not provided
-                    both lists should be an equal length otherwise the longer list will be truncated 
+                    both lists should be an equal length otherwise the longer list will be truncated
 
         window    : int - length of data window in which spikes will be searched
-                    (smaller window = more precise despiking) 
+                    (smaller window = more precise despiking)
 
         multipass : int - number of despiking passes
-        
+
         method :    str - <"median", "mean"> method of calculating threshold value of a spike
 
     Return:
@@ -36,7 +36,7 @@ def despiked(
         spikes = []
         for i in range(len(ndata) - (window - 1)):
             data_window = ndata[i: i + window]
-            
+
             # find min and max data point in the data_window
             vmin, vmax = min(data_window, key=lambda x: x[1]), max(data_window, key=lambda x: x[1])
 
@@ -73,5 +73,3 @@ def despiked(
 
 if __name__ == "__main__":
     help(despiked)
-
-
